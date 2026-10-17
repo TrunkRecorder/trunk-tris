@@ -1,0 +1,15 @@
+{
+  "id": "trunk-tris",
+  "name": "Trunk-tris",
+  "version": "0.1.0",
+  "description": "A relaxing game of Tetris for each radio system, played by the computer, its pieces made by the control channel: grants, affiliations and registrations. NES look, music, high scores.",
+  "api": 1,
+  "access": "listen",
+  "license": "MIT",
+  "repository": "https://github.com/TrunkRecorder/trunk-tris",
+  "screenshots": [
+    { "path": "screenshots/main.png", "caption": "Two systems' games side by side, each piece made by a message on that system's control channel" },
+    { "path": "screenshots/four.png", "caption": "As many games as the screen fits; with more systems than that, they take turns" },
+    { "path": "screenshots/scores.png", "caption": "Game over, and one high score table for every system" }
+  ]
+}

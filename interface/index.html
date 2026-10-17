@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Trunk-tris</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./style.css">
+<script type="module" src="./js/app.js"></script>
+</head>
+<body>
+<header class="bar">
+  <h1><canvas id="logo" class="logo" role="img" aria-label="Trunk-tris"></canvas></h1>
+  <nav id="pager" class="pager" aria-label="Systems" hidden>
+    <button type="button" class="btn" id="prev" aria-label="Previous systems" title="Previous (←)">◀</button>
+    <span id="page" class="page"></span>
+    <button type="button" class="btn" id="next" aria-label="Next systems" title="Next (→)">▶</button>
+  </nav>
+  <span id="state" class="state">Connecting…</span>
+  <span class="spacer"></span>
+  <button type="button" class="btn" id="music" aria-pressed="false" title="Music (M)">♪ Music</button>
+  <button type="button" class="btn" id="live" aria-pressed="false" title="Live audio (L)">🔊 Live</button>
+  <button type="button" class="btn" id="scores-btn" title="High scores (H)">🏆 Scores</button>
+  <button type="button" class="btn" id="full" aria-pressed="false" title="Full screen (F)">⛶ Full screen</button>
+  <button type="button" class="btn" id="settings-btn" title="Settings">⚙</button>
+</header>
+<p id="demo-note" class="note" hidden>Demo: made-up systems and messages. Served by Trunk Recorder Pro, this page plays your own.</p>
+
+<main id="stage" class="stage"></main>
+
+<section id="empty" class="empty" hidden>
+  <h2>No systems to play</h2>
+  <p>Each trunked system the recorder follows gets a game, its pieces made by the messages on its control channel. This recorder has none turned on, or they're all off in Settings.</p>
+  <p><a href="?demo">See the demo</a></p>
+</section>
+
+<dialog id="scores" class="dialog" aria-labelledby="scores-title">
+  <h2 id="scores-title">High scores</h2>
+  <table>
+    <thead><tr><th>#</th><th>System</th><th class="num">Score</th><th class="num">Lines</th><th class="num">Level</th><th>Date</th></tr></thead>
+    <tbody id="scores-rows"></tbody>
+  </table>
+  <p class="hint">Every system's games, in this browser.</p>
+  <div class="actions">
+    <button type="button" class="btn" id="scores-clear">Clear</button>
+    <span class="spacer"></span>
+    <button type="button" class="btn" id="scores-close">Close</button>
+  </div>
+</dialog>
+
+<dialog id="settings" class="dialog" aria-labelledby="settings-title">
+  <h2 id="settings-title">Settings</h2>
+  <form id="settings-form" method="dialog">
+    <fieldset>
+      <legend>Systems</legend>
+      <div id="set-systems" class="checks"></div>
+    </fieldset>
+    <label>Games on the screen
+      <select name="fit">
+        <option value="auto">As many as fit</option>
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+        <option value="4">4</option><option value="6">6</option><option value="8">8</option>
+      </select>
+    </label>
+    <label>Show the next systems every
+      <select name="cycle">
+        <option value="0">Never (◀ ▶ only)</option>
+        <option value="30">30 seconds</option><option value="60">Minute</option>
+        <option value="120">2 minutes</option><option value="300">5 minutes</option>
+      </select>
+    </label>
+    <label>Pace
+      <select name="pace">
+        <option value="relaxed">Relaxed</option><option value="normal">Normal</option><option value="lively">Lively</option>
+      </select>
+    </label>
+    <label>Player
+      <select name="skill">
+        <option value="beginner">Beginner (short games)</option><option value="good">Good</option><option value="expert">Expert (long games)</option>
+      </select>
+    </label>
+    <label>Colors
+      <select name="colors">
+        <option value="nes">NES (changing with the level)</option><option value="modern">Modern (one per piece)</option>
+      </select>
+    </label>
+    <label class="check"><input type="checkbox" name="effects"> Sound effects (lines, levels, game over)</label>
+  </form>
+  <section class="legend">
+    <h3>Where the pieces come from</h3>
+    <p>Each piece is made by a message on the system's control channel. A <b>channel grant</b> (a radio keyed up) makes a T, O or I. An <b>affiliation</b> (a radio joined a talkgroup) makes a J or L. A <b>registration</b> or <b>deregistration</b> (a radio came onto the system or left it) makes an S or Z.</p>
+    <p>Only one message in many makes a piece: the first to come after the last piece appears, of a kind whose piece is still in the bag of seven. So each piece comes as often as any other, and the game goes at its own pace. A system that never sends a kind gets its pieces from the others after a few seconds.</p>
+  </section>
+  <div class="actions">
+    <span class="spacer"></span>
+    <button type="button" class="btn" id="settings-close">Done</button>
+  </div>
+</dialog>
+</body>
+</html>
