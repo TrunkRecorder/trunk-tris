@@ -42,19 +42,20 @@ export class Game {
    * { type: "record" } | { type: "over", score, lines, level } → the
    * score's place in the table (1…) or null | { type: "spawn" }.
    */
-  constructor({ seed = Date.now(), options = () => ({ pace: "relaxed", skill: "good" }), top = () => 0, onEvent = () => null } = {}) {
+  constructor({ seed = Date.now(), rows = H, options = () => ({ pace: "relaxed", skill: "good" }), top = () => 0, onEvent = () => null } = {}) {
     this.random = rng(seed >>> 0);
     this.options = options;
     this.top = top;
     this.onEvent = onEvent;
     this.games = 0;
+    this.rows = rows;
     this.heard = []; // when piece-making messages came, for the rate
     this.heardFrom = 0;
     this.reset();
   }
 
   reset() {
-    this.board = emptyBoard();
+    this.board = emptyBoard(this.rows);
     this.mode = "play"; // "play" | "over" | "scores"
     this.phase = "wait"; // in play: "wait" | "think" | "move" | "fall" | "clear" | "are"
     this.timer = 0;
@@ -112,7 +113,7 @@ export class Game {
     if (this.mode === "over") {
       this.timer += dt;
       // The curtain, then the boxes it put up, then the table.
-      if (this.timer > H * CURTAIN_ROW && !this.boxes.length) {
+      if (this.timer > this.rows * CURTAIN_ROW && !this.boxes.length) {
         this.mode = "scores";
         this.timer = 0;
       }
@@ -272,6 +273,13 @@ export class Game {
 
   /** How far down the curtain is, in rows. */
   get curtain() {
-    return this.mode === "over" ? Math.min(H, Math.floor(this.timer / CURTAIN_ROW)) : this.mode === "scores" ? H : 0;
+    return this.mode === "over" ? Math.min(this.rows, Math.floor(this.timer / CURTAIN_ROW)) : this.mode === "scores" ? this.rows : 0;
+  }
+
+  /** A well `rows` deep (the NES's 20, the Game Boy's 18): a new game in it, when that's a change. */
+  setRows(rows) {
+    if (rows === this.rows) return;
+    this.rows = rows;
+    this.reset();
   }
 }

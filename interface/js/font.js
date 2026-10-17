@@ -69,6 +69,7 @@ const GLYPHS = {
   "^": "00100 01010 10001 00000 00000 00000 00000",
   "|": "00100 00100 00100 00100 00100 00100 00100",
   "♪": "00110 00101 00101 00100 01100 11100 11000",
+  "♥": "00000 01010 11111 11111 01110 00100 00000",
 };
 
 /** Each glyph as 8 rows of 8 bits, emboldened, the top row and the right column empty. */
@@ -90,6 +91,9 @@ export const fontText = (s) =>
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[→]/g, ">")
     .replace(/./gu, (c) => (TILES.has(c) ? c : " "));
+
+/** A character's tile: 8 rows of 8 bits, the leftmost the high bit (a space when the font hasn't got it). */
+export const tile = (ch) => TILES.get(fontText(ch)[0] ?? " ") ?? TILES.get(" ");
 
 /** Draws `text` with its top-left at (x, y), 8 pixels a letter, in `color`. */
 export function text(ctx, s, x, y, color) {

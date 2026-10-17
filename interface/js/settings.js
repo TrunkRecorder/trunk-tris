@@ -15,8 +15,8 @@ const DEFAULTS = {
   pace: "relaxed",
   /** ai.js SKILLS. */
   skill: "good",
-  /** "nes" (by level, as NES Tetris) or "modern". */
-  colors: "nes",
+  /** "nes" (NES Tetris, its colors by level), "modern" (NES, a color a piece), "dmg" (the Game Boy) or "pocket" (the Game Boy Pocket). */
+  look: "nes",
   music: false,
   effects: false,
   live: false,
@@ -27,6 +27,9 @@ const DEFAULTS = {
 export function load() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY) ?? "{}");
+    // 0.1 had colors: "nes" | "modern".
+    if (s.colors && !s.look) s.look = s.colors;
+    delete s.colors;
     // Sound needs a click to start, every time: these come back off.
     return { ...structuredClone(DEFAULTS), ...s, music: false, effects: false, live: false };
   } catch {

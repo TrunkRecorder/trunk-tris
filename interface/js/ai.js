@@ -8,7 +8,7 @@
 // `temperature`. Only the three best, so a slip is a near miss, never
 // something silly.
 
-import { W, H, SHAPES, cells, fits, dropDistance } from "./tetris.js";
+import { W, SHAPES, cells, fits, dropDistance } from "./tetris.js";
 
 const WEIGHTS = {
   landing: -4.500158825082766,
@@ -90,6 +90,7 @@ function score(board, p) {
   let cleared = 0,
     pieceCleared = 0;
   const kept = [];
+  const H = board.length;
   for (let y = 0; y < H; y++) {
     if (rows[y].every((c) => c)) {
       cleared++;
@@ -113,6 +114,7 @@ function score(board, p) {
 
 /** Dellacherie's measures of a well: how ragged, how holey. */
 export function features(rows) {
+  const H = rows.length;
   let rowTransitions = 0,
     colTransitions = 0,
     holes = 0,

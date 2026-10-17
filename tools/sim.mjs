@@ -3,7 +3,7 @@
 // many lines a game lasts at each temperature (ai.js SKILLS). Pieces come
 // from a 7-bag, as the radio's do.
 //
-//   node tools/sim.mjs [games=40] [temperatures=0.5,1,2,3]
+//   node tools/sim.mjs [games=40] [temperatures=0.5,1,2,3] [rows=20]
 
 import { emptyBoard, fits, dropDistance, place, fullRows, removeRows, PIECES, SPAWN_X, SPAWN_Y } from "../interface/js/tetris.js";
 import { choose } from "../interface/js/ai.js";
@@ -11,11 +11,12 @@ import { rng } from "../interface/js/rng.js";
 
 const games = Number(process.argv[2] ?? 40);
 const temps = (process.argv[3] ?? "0.5,1,2,3").split(",").map(Number);
+const ROWS = Number(process.argv[4] ?? 20); // the Game Boy's well: 18
 const CAP = Number(process.env.CAP ?? 600); // lines: a game this long counts as never ending
 
 export function play(temperature, seed) {
   const random = rng(seed);
-  const board = emptyBoard();
+  const board = emptyBoard(ROWS);
   let bag = [],
     lines = 0,
     pieces = 0;

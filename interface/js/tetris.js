@@ -1,9 +1,12 @@
-// The rules: a 10 × 20 well, the seven pieces as NES Tetris has them (its
-// spawn place and rotations, no wall kicks), line clears, and NES scoring.
+// The rules: a well 10 wide and 20 deep (18 on the Game Boy), the seven
+// pieces as NES Tetris has them (its spawn place and rotations, no wall
+// kicks), line clears, and NES scoring.
 // No timing here: game.js decides when things happen.
 
 export const W = 10;
+/** NES Tetris's well; the Game Boy's is GB_H. A board is as deep as its rows. */
 export const H = 20;
+export const GB_H = 18;
 
 /** In the order NES Tetris's statistics list them. */
 export const PIECES = ["T", "J", "Z", "O", "S", "L", "I"];
@@ -33,8 +36,8 @@ export const SHAPES = Object.fromEntries(
 export const SPAWN_X = 5;
 export const SPAWN_Y = 0;
 
-/** An empty well: H rows of W cells, 0 empty, else 1 + the piece's index in PIECES. */
-export const emptyBoard = () => Array.from({ length: H }, () => new Uint8Array(W));
+/** An empty well: `rows` rows of W cells, 0 empty, else 1 + the piece's index in PIECES. */
+export const emptyBoard = (rows = H) => Array.from({ length: rows }, () => new Uint8Array(W));
 
 export const cellOf = (type) => PIECES.indexOf(type) + 1;
 
@@ -44,7 +47,7 @@ export const cells = (p) => SHAPES[p.type][p.rot].map(([dx, dy]) => [p.x + dx, p
 /** Whether `p` fits: inside the walls and the floor, on nothing. Above the top is open. */
 export function fits(board, p) {
   for (const [x, y] of cells(p)) {
-    if (x < 0 || x >= W || y >= H) return false;
+    if (x < 0 || x >= W || y >= board.length) return false;
     if (y >= 0 && board[y][x]) return false;
   }
   return true;
@@ -74,7 +77,7 @@ export function place(board, p) {
 /** The rows that are full, top to bottom. */
 export function fullRows(board) {
   const rows = [];
-  for (let y = 0; y < H; y++) if (board[y].every((c) => c)) rows.push(y);
+  for (let y = 0; y < board.length; y++) if (board[y].every((c) => c)) rows.push(y);
   return rows;
 }
 
@@ -82,8 +85,8 @@ export function fullRows(board) {
 export function removeRows(board, rows) {
   const gone = new Set(rows);
   const kept = board.filter((_, y) => !gone.has(y));
-  while (kept.length < H) kept.unshift(new Uint8Array(W));
-  for (let y = 0; y < H; y++) board[y] = kept[y];
+  while (kept.length < board.length) kept.unshift(new Uint8Array(W));
+  for (let y = 0; y < board.length; y++) board[y] = kept[y];
 }
 
 /** NES Tetris's points for clearing `n` lines at once on `level`. */

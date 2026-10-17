@@ -61,3 +61,16 @@ test("game over: the curtain, the boxes, then the table for a while", () => {
   assert.equal(g.mode, "play");
   assert.equal(g.games, 2);
 });
+
+test("the Game Boy's well is 18 deep; changing the depth starts a new game", () => {
+  const g = new Game({ seed: 5, rows: 18 });
+  assert.equal(g.board.length, 18);
+  run(g, 60, { grant: 120, affiliation: 60, registration: 60 });
+  assert.ok(Object.values(g.stats).some((n) => n > 0));
+  g.setRows(18);
+  assert.equal(g.games, 1, "the same depth: the same game");
+  g.setRows(20);
+  assert.equal(g.board.length, 20);
+  assert.equal(g.games, 2);
+  assert.equal(Object.values(g.stats).reduce((a, b) => a + b, 0), 0);
+});

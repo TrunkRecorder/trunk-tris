@@ -4,8 +4,8 @@ A game of Tetris for each radio system your
 [Trunk Recorder Pro](https://github.com/TrunkRecorder/trunk-recorder-pro) records, played by the
 computer, with pieces made by the system's control channel. Every time a radio keys up, joins a
 talkgroup or comes onto the system, the control channel says so, and some of those messages
-become the next piece. It looks and sounds like NES Tetris. Put it on a spare screen and let it
-play.
+become the next piece. It looks and sounds like NES Tetris, or like Tetris on the first Game Boy.
+Put it on a spare screen and let it play.
 
 ![Two systems' games](interface/screenshots/main.png)
 
@@ -51,7 +51,7 @@ nothing to say leaves **NEXT** empty, and its game waits.
   turn while a game on it is showing its game over.
 - **NES Tetris's screen.** LINES, TOP, SCORE, NEXT and LEVEL where the NES has them, and its
   colors, which change every level as they did. **Modern** colors (cyan I, yellow O and so on)
-  are in Settings. **MSG/MIN** is how many grants, affiliations and registrations the system
+  and the Game Boy are in Settings, under **Look**. **MSG/MIN** is how many grants, affiliations and registrations the system
   sends a minute.
 - **The computer plays.** It looks at every place a piece can go and picks one of the three best,
   usually the best. It slips now and then, so games end: about half an hour each at the relaxed
@@ -66,6 +66,39 @@ nothing to say leaves **NEXT** empty, and its game waits.
   this browser, so each screen has its own.
 - **On the air.** A system with calls on the air says so under its name, and with live audio on,
   the game whose call is playing is ringed in green.
+
+## The Game Boy look
+
+In Settings, **Look** → **Game Boy** (or press G) shows each game as Game Boy Tetris did, on a
+Game Boy:
+
+![The Game Boy look](interface/screenshots/gameboy.png)
+
+- **Its screen.** 160 × 144 pixels in four shades, laid out as Game Boy Tetris lays it out:
+  brick walls on each side of a well 18 deep (the NES's is 20), SCORE, LEVEL and LINES in boxes
+  on a dotted panel, and the next piece in its own box. With no colors, each of the seven pieces
+  has its own pattern, as on the Game Boy. Full rows blink before they go, the well fills with a
+  curtain at game over, and the box says PLEASE TRY AGAIN ♥. The high score table shows the
+  best six (🏆 has all ten).
+- **Its LCD**, recreated the way Game Boy emulators do it:
+  - *Slow pixels.* The Game Boy's LCD took a few frames to change, so a falling piece leaves a
+    fading trail. Each frame, every pixel moves part of the way to its new shade. The libretro
+    Game Boy shader does this by blending in the frames before.
+  - *A dot matrix.* Each pixel is a square of ink over a pale backing, with a lighter gap
+    around it. Even a blank pixel is a little darker than the gaps, so the grid shows across
+    the whole screen. The libretro shader calls this "base pixel transparency", and SameBoy's
+    monochrome LCD filter dims each pixel's edges the same way.
+  - *Shadows.* The ink sits above the backing and casts a soft shadow down and to the right. It
+    shows through the pale pixels and in the gaps, like the libretro shader's offset, blurred
+    shadow passes.
+  - *Bloom.* A little of the picture again, smoothed, as SameBoy's LCD filter mixes in. This
+    one is gentler.
+  - *The backing.* A faint grain on the backing, lighter at the top left, and the bezel's
+    shadow along the top and left edges, since the screen sits below it.
+- **Its palettes**, the ones SameBoy uses: the first Game Boy's green, and, with **Game Boy
+  Pocket**, the Pocket's gray.
+- **The Game Boy around it**: the stripe across the top of the bezel shows the message that made
+  the latest piece, and the red light is on while the system has calls on the air.
 
 ## Sound
 
@@ -92,7 +125,9 @@ Under ⚙, kept in this browser:
 - **Show the next systems every**: 30 seconds to 5 minutes, or never.
 - **Pace**: **Relaxed** (the default), **Normal** or **Lively**.
 - **Player**: **Beginner**, **Good** or **Expert**.
-- **Colors**: **NES**, changing with the level, or **Modern**.
+- **Look**: **NES** (its colors change with the level), **NES, modern colors**, **Game Boy** or
+  **Game Boy Pocket**. Changing between the NES and the Game Boy starts the games again, since
+  their wells are different depths.
 - **Sound effects**.
 
 ## Working on it
@@ -105,7 +140,7 @@ font, the blocks and the screen are in `interface/js/font.js` and `screen.js`, a
 node tools/serve.mjs --recorder 127.0.0.1:8080   # http://localhost:8099/, a recorder's systems
 node tools/serve.mjs                              # then open /?demo: four made-up systems
 node --test test/*.test.mjs                       # the rules, the player, the bag, the game
-node tools/sim.mjs 40 15,20,30                    # how long games last at each skill
+node tools/sim.mjs 40 15,20,30 18                 # how long games last at each skill (an 18-deep well)
 node tools/shoot.mjs "http://localhost:8099/?demo&speed=8" shot.png   # a screenshot (Chrome)
 ```
 
@@ -119,6 +154,7 @@ node tools/shoot.mjs "http://localhost:8099/?demo&speed=8" shot.png   # a screen
 | `feed.js` | control messages → pieces: the kinds, the bag of seven, the texts |
 | `game.js` | one system's game, on its own clock: moves, gravity, boxes, game over, the table |
 | `screen.js` | drawing a game as an NES screen |
+| `gameboy.js` | drawing a game as Game Boy Tetris, and the Game Boy's LCD |
 | `app.js` | the page: systems, layout and paging, sound, live audio, settings, full screen |
 
 Releases: set the version in `interface/interface.json`, add it to `CHANGELOG.md`, and push a tag
@@ -126,6 +162,6 @@ Releases: set the version in `interface/interface.json`, add it to `CHANGELOG.md
 
 ## License
 
-MIT. Tetris is a trademark of The Tetris Company. This is a fan-made visualization, with its own
-code, art and arrangement of a folk song, and isn't affiliated with The Tetris Company or
-Nintendo.
+MIT. Tetris is a trademark of The Tetris Company, and Game Boy of Nintendo. This is a fan-made
+visualization, with its own code, art and arrangement of a folk song, and isn't affiliated with
+The Tetris Company or Nintendo.

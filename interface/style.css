@@ -97,6 +97,106 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 .empty { margin: auto; max-width: 36rem; padding: 16px; text-align: center; }
 .empty a { color: var(--gold); }
 
+/* ── The Game Boy look: the LCD in its bezel, on the gray plastic ─────────
+   Sizes are in Game Boy pixels (--s screen pixels each), so the whole
+   thing scales with the screen: 216 × 212 of them, the LCD 160 × 144. */
+
+.gameboy {
+  --u: calc(var(--s, 2) * 1px);
+  --plastic: #c9c6bf;
+  --bezel: #5b5b6a;
+  --magenta: #8c2156;
+  --navy: #262a86;
+  width: calc(var(--u) * 216);
+  height: calc(var(--u) * 212);
+  padding: calc(var(--u) * 8);
+  background: linear-gradient(160deg, #d6d3cc, var(--plastic) 40%, #b9b6af);
+  border-radius: calc(var(--u) * 6) calc(var(--u) * 6) calc(var(--u) * 30) calc(var(--u) * 6);
+  box-shadow: inset 0 calc(var(--u) * -1) calc(var(--u) * 2) rgb(0 0 0 / 0.25), inset 0 calc(var(--u) * 1) calc(var(--u) * 1) rgb(255 255 255 / 0.5);
+  outline-offset: calc(var(--u) * 2);
+}
+.gameboy.pocket {
+  --plastic: #c4c6c9;
+  --bezel: #6b6d74;
+  --magenta: #8a8c93;
+  --navy: #8a8c93;
+  background: linear-gradient(160deg, #dcdee1, var(--plastic) 40%, #aeb0b4);
+}
+.gb-bezel {
+  position: relative;
+  padding: calc(var(--u) * 22) calc(var(--u) * 20) calc(var(--u) * 14);
+  background: var(--bezel);
+  border-radius: calc(var(--u) * 5) calc(var(--u) * 5) calc(var(--u) * 24) calc(var(--u) * 5);
+  box-shadow: inset 0 calc(var(--u) * 1) calc(var(--u) * 2) rgb(0 0 0 / 0.5);
+}
+/* The two thin lines across the top, with the latest message between them. */
+.gb-stripe {
+  position: absolute;
+  top: calc(var(--u) * 8);
+  left: calc(var(--u) * 8);
+  right: calc(var(--u) * 8);
+  height: calc(var(--u) * 7);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 3);
+}
+.gb-stripe i {
+  flex: 1 1 calc(var(--u) * 6);
+  min-width: calc(var(--u) * 6);
+  height: calc(var(--u) * 4);
+  border-top: calc(var(--u) * 1) solid var(--magenta);
+  border-bottom: calc(var(--u) * 1) solid var(--navy);
+}
+.gb-stripe i:first-child { flex: 0 0 calc(var(--u) * 10); }
+.gb-label {
+  flex: 0 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: italic 700 calc(var(--u) * 5.5) / 1 "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #c9c9d6;
+}
+/* The light: on while the system has calls on the air. */
+.gb-led {
+  position: absolute;
+  left: calc(var(--u) * 4);
+  top: calc(var(--u) * 70);
+  width: calc(var(--u) * 13);
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--u) * 2);
+}
+.gb-led b {
+  width: calc(var(--u) * 5);
+  height: calc(var(--u) * 5);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #6a2a2a, #2a0d0d);
+  box-shadow: inset 0 0 calc(var(--u) * 1) #000;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.gb-led.on b {
+  background: radial-gradient(circle at 35% 35%, #ffb0a0, #ff2a1a 45%, #a00a00);
+  box-shadow: 0 0 calc(var(--u) * 4) #ff3020, 0 0 calc(var(--u) * 1.5) #ff6050;
+}
+.gb-led small {
+  font: 700 calc(var(--u) * 3.5) / 1 "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: 0.05em;
+  color: #b8b8c6;
+  white-space: nowrap;
+}
+.gb-lcd { line-height: 0; box-shadow: 0 0 0 calc(var(--u) * 1) rgb(0 0 0 / 0.35); }
+.gb-lcd canvas { display: block; image-rendering: auto; }
+.gb-brand {
+  margin: calc(var(--u) * 5) 0 0 calc(var(--u) * 6);
+  font: italic 800 calc(var(--u) * 11) / 1 Futura, "Trebuchet MS", "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: 0.02em;
+  color: var(--navy);
+  text-shadow: 0 calc(var(--u) * 0.5) 0 rgb(255 255 255 / 0.35);
+}
+.gameboy.pocket .gb-brand { color: #4b4d55; }
+
 /* ── Full screen: the bar floats, and goes with the pointer when nothing moves ── */
 
 body.full .bar { position: fixed; top: 0; left: 0; right: 0; }

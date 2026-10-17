@@ -12,6 +12,8 @@
 import { Game } from "./game.js";
 import { GROUP_NAMES, KINDS, about } from "./feed.js";
 import { draw, SCREEN_W, SCREEN_H } from "./screen.js";
+import { GameBoyScreen, LCD_W, LCD_H } from "./gameboy.js";
+import { H, GB_H } from "./tetris.js";
 import { text as pixelText } from "./font.js";
 import { Music } from "./music.js";
 import { DemoClient } from "./demo.js";
@@ -44,7 +46,11 @@ let playing = null; // the short name whose live audio is playing
 // so no game.
 
 let systems = []; // { short, name }
-const games = new Map(); // short → { game, canvas, ctx, el }
+const games = new Map(); // short → { game, canvas, ctx, el, gb }
+
+/** The Game Boy looks: its well is 18 deep, the NES's 20. */
+const isGB = () => settings.look === "dmg" || settings.look === "pocket";
+const rows = () => (isGB() ? GB_H : H);
 
 function loadSystems() {
   const cfg = rec.config;
@@ -62,12 +68,37 @@ function makeGame(short) {
   el.append(canvas);
   const game = new Game({
     seed: Date.now() ^ hashOf(short),
+    rows: rows(),
     options: () => ({ pace: settings.pace, skill: settings.skill }),
     top: () => scores[0]?.score ?? 0,
     onEvent: (e) => event(short, e),
   });
   return { game, canvas, ctx: canvas.getContext("2d"), el };
 }
+
+/**
+ * A game as a Game Boy: its LCD in the bezel (the stripe along the top
+ * says what made the latest piece; the red light is on while the system
+ * has calls on the air), made the first time it's wanted.
+ */
+function gameBoy(g) {
+  if (g.gb) return g.gb;
+  const screen = new GameBoyScreen();
+  const el = document.createElement("section");
+  el.className = "game gameboy";
+  el.innerHTML = `<div class="gb-bezel">
+      <div class="gb-stripe"><i></i><span class="gb-label"></span><i></i></div>
+      <div class="gb-led"><b></b><small>ON AIR</small></div>
+      <div class="gb-lcd"></div>
+    </div>
+    <div class="gb-brand">Trunk-tris</div>`;
+  el.querySelector(".gb-lcd").append(screen.canvas);
+  return (g.gb = { screen, el, label: el.querySelector(".gb-label"), led: el.querySelector(".gb-led"), text: null });
+}
+
+/** A game's size on the screen, in its own pixels: the NES's screen, or the Game Boy with its bezel. */
+const GB_SIZE = [216, 212];
+const unit = () => (isGB() ? GB_SIZE : [SCREEN_W, SCREEN_H]);
 
 const hashOf = (s) => [...s].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 7);
 
@@ -125,7 +156,8 @@ function grid(n, w, h) {
   let best = { cols: 1, rows: 1, scale: 0 };
   for (let cols = 1; cols <= n; cols++) {
     const rows = Math.ceil(n / cols);
-    const s = Math.min((w - GAP * (cols - 1)) / (cols * SCREEN_W), (h - GAP * (rows - 1)) / (rows * SCREEN_H));
+    const [uw, uh] = unit();
+    const s = Math.min((w - GAP * (cols - 1)) / (cols * uw), (h - GAP * (rows - 1)) / (rows * uh));
     if (s > best.scale) best = { cols, rows, scale: s };
   }
   // Whole pixels when they're big enough to see, so every pixel is the same size.
@@ -160,15 +192,28 @@ function layout() {
   const next = Array.from({ length: Math.min(k, n) }, (_, i) => systems[(start + i) % n].short);
   stage.style.gridTemplateColumns = `repeat(${Math.min(g.cols, next.length)}, auto)`;
   stage.style.setProperty("--gap", `${GAP}px`);
-  if (next.join() !== shown.join() || stage.children.length !== next.length) {
-    shown = next;
-    stage.replaceChildren(...shown.map((s) => games.get(s).el));
-  }
+  // A new look with a well of another depth starts every game again.
+  for (const s of systems) games.get(s.short).game.setRows(rows());
+  shown = next;
+  const els = shown.map((s) => (isGB() ? gameBoy(games.get(s)).el : games.get(s).el));
+  if (els.length !== stage.children.length || els.some((e, i) => stage.children[i] !== e)) stage.replaceChildren(...els);
   for (const s of shown) {
-    const { canvas, el } = games.get(s);
-    canvas.style.width = `${SCREEN_W * scale}px`;
-    canvas.style.height = `${SCREEN_H * scale}px`;
-    el.title = systems.find((x) => x.short === s)?.name ?? s;
+    const g = games.get(s);
+    const title = systems.find((x) => x.short === s)?.name ?? s;
+    if (isGB()) {
+      const { screen, el } = gameBoy(g);
+      el.style.setProperty("--s", String(scale));
+      screen.canvas.style.width = `${LCD_W * scale}px`;
+      screen.canvas.style.height = `${LCD_H * scale}px`;
+      el.classList.toggle("pocket", settings.look === "pocket");
+      // Whole device pixels a Game Boy pixel, for an even grid.
+      screen.setup(Math.max(1, Math.round(scale * (window.devicePixelRatio || 1))), settings.look);
+      el.title = title;
+    } else {
+      g.canvas.style.width = `${SCREEN_W * scale}px`;
+      g.canvas.style.height = `${SCREEN_H * scale}px`;
+      g.el.title = title;
+    }
   }
   $("pager").hidden = pages < 2;
   $("page").textContent = `${settings.page + 1}/${pages}`;
@@ -203,7 +248,7 @@ const dateFmt = new Intl.DateTimeFormat([], { year: "2-digit", month: "2-digit",
 function view(short, g, now) {
   return {
     name: short.toUpperCase(),
-    colors: settings.colors,
+    colors: settings.look === "modern" ? "modern" : "nes",
     paused: paused(),
     calls: (rec.calls ?? []).filter((c) => c.systemName === short).length,
     playing: playing === short,
@@ -223,14 +268,25 @@ function loop(now) {
   if (now - lastFrame < FRAME_MS) return;
   lastFrame = now;
   // A hidden tab has no frames: the games wait for it, rather than jump.
-  const dt = Math.min(0.1, (now - last) / 1000) * SPEED;
+  const real = Math.min(0.1, (now - last) / 1000),
+    dt = real * SPEED;
   last = now;
   // Every system's game, on the screen or not; not those turned off.
   if (!paused()) for (const s of systems) games.get(s.short).game.update(dt);
   for (const s of shown) {
     const g = games.get(s);
-    draw(g.ctx, g.game, view(s, g.game, now));
-    g.el.classList.toggle("on-air", playing === s);
+    const v = view(s, g.game, now);
+    if (isGB()) {
+      const gb = gameBoy(g);
+      gb.screen.draw(g.game, v, real);
+      const text = v.label || (v.paused ? "THE RECORDER IS STOPPED" : "LISTENING TO THE RADIO");
+      if (gb.text !== text) gb.label.textContent = gb.text = text;
+      gb.led.classList.toggle("on", v.calls > 0);
+      gb.el.classList.toggle("on-air", playing === s);
+    } else {
+      draw(g.ctx, g.game, v);
+      g.el.classList.toggle("on-air", playing === s);
+    }
   }
   cycle(now);
 }
@@ -359,7 +415,7 @@ $("settings-btn").addEventListener("click", () => {
   $("set-systems").innerHTML = all.length
     ? all.map((s) => `<label><input type="checkbox" value="${esc(s.shortName)}" ${settings.off.includes(s.shortName) ? "" : "checked"}> ${esc(s.name || s.shortName)}</label>`).join("")
     : `<span class="hint">No trunked systems are turned on in the recorder.</span>`;
-  for (const name of ["fit", "cycle", "pace", "skill", "colors"]) form.elements[name].value = String(settings[name]);
+  for (const name of ["fit", "cycle", "pace", "skill", "look"]) form.elements[name].value = String(settings[name]);
   form.elements.effects.checked = settings.effects;
   openDialog($("settings"));
 });
@@ -435,6 +491,11 @@ document.addEventListener("keydown", (e) => {
   else if (k === "m") $("music").click();
   else if (k === "l" && player) $("live").click();
   else if (k === "h") $("scores-btn").click();
+  else if (k === "g") {
+    settings.look = isGB() ? "nes" : "dmg";
+    Store.save(settings);
+    layout();
+  }
   else if (k === "f" && canFull) toggleFull();
   else return;
   e.preventDefault();
