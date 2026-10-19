@@ -69,7 +69,7 @@ function makeGame(short) {
   const game = new Game({
     seed: Date.now() ^ hashOf(short),
     rows: rows(),
-    options: () => ({ pace: settings.pace, skill: settings.skill }),
+    options: () => ({ pace: settings.pace, skill: settings.skill, pieces: settings.pieces }),
     top: () => scores[0]?.score ?? 0,
     onEvent: (e) => event(short, e),
   });
@@ -415,7 +415,7 @@ $("settings-btn").addEventListener("click", () => {
   $("set-systems").innerHTML = all.length
     ? all.map((s) => `<label><input type="checkbox" value="${esc(s.shortName)}" ${settings.off.includes(s.shortName) ? "" : "checked"}> ${esc(s.name || s.shortName)}</label>`).join("")
     : `<span class="hint">No trunked systems are turned on in the recorder.</span>`;
-  for (const name of ["fit", "cycle", "pace", "skill", "look"]) form.elements[name].value = String(settings[name]);
+  for (const name of ["fit", "cycle", "pace", "skill", "pieces", "look"]) form.elements[name].value = String(settings[name]);
   form.elements.effects.checked = settings.effects;
   openDialog($("settings"));
 });

@@ -1,7 +1,7 @@
 {
   "id": "trunk-tris",
   "name": "Trunk-tris",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A relaxing game of Tetris for each radio system, played by the computer, its pieces made by the control channel: grants, affiliations and registrations. NES or Game Boy look, music, high scores.",
   "api": 1,
   "access": "listen",

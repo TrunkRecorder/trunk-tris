@@ -6,7 +6,7 @@
 
 import { H, emptyBoard, fits, place, fullRows, removeRows, points, levelFor, SHAPES, SPAWN_X, SPAWN_Y, PIECES } from "./tetris.js";
 import { choose, SKILLS } from "./ai.js";
-import { Bag, KINDS, groupOf } from "./feed.js";
+import { Bag, KINDS, groupOf, pieceOf } from "./feed.js";
 import { rng } from "./rng.js";
 
 /**
@@ -23,7 +23,7 @@ export const PACES = {
 const ARE = 0.3;
 /** …while full lines vanish… */
 export const CLEAR = 0.6;
-/** …after a piece appears, before a message may become the one after it. */
+/** …after a piece appears, before a message may become the one after it (in a fair game). */
 const SETTLE = 0.8;
 /** Game over: the curtain comes down a row at a time… */
 export const CURTAIN_ROW = 0.07;
@@ -36,7 +36,9 @@ export const CURTAIN = 8;
 
 export class Game {
   /**
-   * `options()` → { pace, skill } (the names in PACES, SKILLS);
+   * `options()` → { pace, skill, pieces } (the names in PACES, SKILLS;
+   * pieces: "fair", out of the bag of seven, or "radio", as the radio
+   * sends them);
    * `top()` → the best score in the high score table;
    * `onEvent(e)`: { type: "lines", n } | { type: "level", level } |
    * { type: "record" } | { type: "over", score, lines, level } → the
@@ -88,8 +90,11 @@ export class Game {
       this.heard.push(this.t);
       while (this.heard.length && this.t - this.heard[0] > 60) this.heard.shift();
     }
-    if (this.mode !== "play" || this.next || this.t - this.nextSince < SETTLE) return false;
-    const type = this.bag.take(line, this.t - this.nextSince);
+    if (this.mode !== "play" || this.next) return false;
+    let type;
+    if (this.options().pieces === "radio") type = pieceOf(line);
+    else if (this.t - this.nextSince >= SETTLE) type = this.bag.take(line, this.t - this.nextSince);
+    else return false;
     if (!type) return false;
     this.next = { type };
     this.feed = { type, group: KINDS[line.kind] ?? groupOf(type), line, at: this.t };

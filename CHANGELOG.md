@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0]
+
+- Pieces as the radio sends them (Settings → Pieces): no bag of seven and nothing evened out.
+  The first grant, affiliation or registration after a piece appears makes the next one, and
+  every message after it is let go until that piece appears. So a system of grants plays mostly
+  T, O and I.
+
 ## [0.2.0]
 
 - A Game Boy look (Settings → Look, or G): each game drawn as Game Boy Tetris draws it, on a

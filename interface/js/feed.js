@@ -13,6 +13,10 @@
 // empty. A system that never sends a kind (SmartNet has no registrations)
 // would leave its pieces in the bag for good, so after a while of waiting
 // any of the three kinds will do, and after longer, any message at all.
+//
+// Or, as the radio sends them (pieceOf): no bag, nothing evened out, no
+// stand-ins. The first message of the three kinds makes the next piece,
+// whichever kind it is, so a system that's all grants plays T, O and I.
 
 import { PIECES } from "./tetris.js";
 import { hash } from "./rng.js";
@@ -41,6 +45,15 @@ export const LOOSE_AFTER = 8;
 /** …and this long, any control message. */
 export const ANY_AFTER = 20;
 
+/** Which of `types` control message `line` makes: by the message itself, so it isn't the same one each time. */
+const pick = (types, line) => types[hash(line.text ?? "") % types.length];
+
+/** The piece control message `line` makes as the radio sends it, with no bag: its kind's, or null. */
+export function pieceOf(line) {
+  const group = KINDS[line.kind];
+  return group ? pick(GROUPS[group], line) : null;
+}
+
 export class Bag {
   constructor() {
     this.left = [...PIECES];
@@ -56,8 +69,7 @@ export class Bag {
     let can = group ? this.left.filter((p) => GROUPS[group].includes(p)) : [];
     if (!can.length && (waited >= LOOSE_AFTER && group || waited >= ANY_AFTER)) can = this.left;
     if (!can.length) return null;
-    // Which of them: by the message itself, so it isn't the same one each time.
-    const type = can[hash(line.text ?? "") % can.length];
+    const type = pick(can, line);
     this.left.splice(this.left.indexOf(type), 1);
     if (!this.left.length) this.left = [...PIECES];
     return type;

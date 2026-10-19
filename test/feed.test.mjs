@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { Bag, GROUPS, KINDS, LOOSE_AFTER, ANY_AFTER, about, groupOf } from "../interface/js/feed.js";
+import { Bag, GROUPS, KINDS, LOOSE_AFTER, ANY_AFTER, about, groupOf, pieceOf } from "../interface/js/feed.js";
 import { PIECES } from "../interface/js/tetris.js";
 import { rng } from "../interface/js/rng.js";
 
@@ -62,4 +62,9 @@ test("the recorder's message texts: talkgroup and radio", () => {
   assert.deepEqual(about("deaffiliation src 46310"), { tg: null, unit: 46310 });
   assert.deepEqual(about("grant tg 32816 496.58750 MHz src 65520 digital"), { tg: 32816, unit: 65520 });
   assert.equal(groupOf("I"), "grant");
+});
+
+test("a message's own piece, with no bag", () => {
+  for (const [kind, group] of Object.entries(KINDS)) for (let i = 0; i < 10; i++) assert.ok(GROUPS[group].includes(pieceOf({ kind, text: `${kind} ${i}` })));
+  assert.equal(pieceOf({ kind: "update", text: "Update TG 1" }), null);
 });

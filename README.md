@@ -36,6 +36,14 @@ pieces, each one comes exactly once. A system that never sends a kind (SmartNet 
 registrations) would leave that kind's pieces in the bag for good, so after 8 seconds of waiting
 any of the three kinds will do, and after 20, any message at all.
 
+### As the radio sends them
+
+With Settings → **Pieces** → **As the radio sends them**, there's no bag and nothing is evened
+out. The first grant, affiliation or registration after a piece appears in the well makes the
+next one, whatever its kind, and every message after it is let go until that piece appears in
+turn. Nothing is kept for later. A system that's mostly grants plays mostly T, O and I; one that
+never sends registrations never gets an S or Z; and a quiet system leaves the game waiting.
+
 The statistics on the left of each game count the pieces under the message that makes them. The
 line along the bottom shows the message that made the latest one: the grant's talkgroup, the
 radio that affiliated and the talkgroup it joined, the radio that registered. A system with
@@ -125,6 +133,7 @@ Under ⚙, kept in this browser:
 - **Show the next systems every**: 30 seconds to 5 minutes, or never.
 - **Pace**: **Relaxed** (the default), **Normal** or **Lively**.
 - **Player**: **Beginner**, **Good** or **Expert**.
+- **Pieces**: **Fair** (the bag of seven, the default) or **As the radio sends them**.
 - **Look**: **NES** (its colors change with the level), **NES, modern colors**, **Game Boy** or
   **Game Boy Pocket**. Changing between the NES and the Game Boy starts the games again, since
   their wells are different depths.

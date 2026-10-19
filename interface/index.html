@@ -80,6 +80,12 @@
         <option value="beginner">Beginner (short games)</option><option value="good">Good</option><option value="expert">Expert (long games)</option>
       </select>
     </label>
+    <label>Pieces
+      <select name="pieces">
+        <option value="fair">Fair (a bag of seven, each as often as any other)</option>
+        <option value="radio">As the radio sends them (nothing evened out)</option>
+      </select>
+    </label>
     <label>Look
       <select name="look">
         <option value="nes">NES (colors change with the level)</option>
@@ -94,6 +100,7 @@
     <h3>Where the pieces come from</h3>
     <p>Each piece is made by a message on the system's control channel. A <b>channel grant</b> (a radio keyed up) makes a T, O or I. An <b>affiliation</b> (a radio joined a talkgroup) makes a J or L. A <b>registration</b> or <b>deregistration</b> (a radio came onto the system or left it) makes an S or Z.</p>
     <p>Only one message in many makes a piece: the first to come after the last piece appears, of a kind whose piece is still in the bag of seven. So each piece comes as often as any other, and the game goes at its own pace. A system that never sends a kind gets its pieces from the others after a few seconds.</p>
+    <p>With <b>Pieces</b> set to <b>as the radio sends them</b>, there's no bag: the first grant, affiliation or registration after a piece appears makes the next one, whatever its kind, and every message until that one appears is let go. A busy talkgroup can mean a run of T, O and I; a quiet system, a long wait.</p>
   </section>
   <div class="actions">
     <span class="spacer"></span>

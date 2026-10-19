@@ -15,6 +15,8 @@ const DEFAULTS = {
   pace: "relaxed",
   /** ai.js SKILLS. */
   skill: "good",
+  /** "fair" (out of a bag of seven, each as often as any other) or "radio" (as the radio sends them). */
+  pieces: "fair",
   /** "nes" (NES Tetris, its colors by level), "modern" (NES, a color a piece), "dmg" (the Game Boy) or "pocket" (the Game Boy Pocket). */
   look: "nes",
   music: false,

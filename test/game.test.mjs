@@ -74,3 +74,27 @@ test("the Game Boy's well is 18 deep; changing the depth starts a new game", () 
   assert.equal(g.games, 2);
   assert.equal(Object.values(g.stats).reduce((a, b) => a + b, 0), 0);
 });
+
+test("as the radio sends them: the first message after a piece appears makes the next, and the rest are let go", () => {
+  const g = new Game({ seed: 6, options: () => ({ pace: "relaxed", skill: "good", pieces: "radio" }) });
+  assert.equal(g.offer({ kind: "update", text: "Update TG 1" }), false, "updates make nothing");
+  assert.equal(g.offer({ kind: "grant", text: "grant 1" }), true);
+  const next = g.next.type;
+  assert.ok(["T", "O", "I"].includes(next));
+  assert.equal(g.offer({ kind: "registration", text: "registration 1" }), false, "NEXT is taken: let go");
+  assert.equal(g.next.type, next);
+  g.update(1 / 30);
+  assert.equal(g.piece.type, next, "it's in the well");
+  assert.equal(g.next, null);
+  assert.equal(g.offer({ kind: "registration", text: "registration 2" }), true, "no wait before the one after it");
+  assert.ok(["S", "Z"].includes(g.next.type));
+});
+
+test("as the radio sends them: nothing evened out, a system of grants plays T, O and I", () => {
+  const g = new Game({ seed: 7, options: () => ({ pace: "lively", skill: "expert", pieces: "radio" }) });
+  run(g, 120, { grant: 600, affiliation: 6 });
+  const s = g.stats;
+  const grants = s.T + s.O + s.I;
+  assert.ok(grants > 4 * (s.J + s.L), JSON.stringify(s));
+  assert.equal(s.S + s.Z, 0, "no registrations, no S or Z, however long the wait");
+});
