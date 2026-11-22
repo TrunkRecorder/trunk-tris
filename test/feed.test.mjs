@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { Bag, GROUPS, KINDS, LOOSE_AFTER, ANY_AFTER, about, groupOf, pieceOf } from "../interface/js/feed.js";
+import { Bag, GROUPS, KINDS, LOOSE_AFTER, ANY_AFTER, UNIT_KINDS, about, fromUnit, groupOf, pieceOf } from "../interface/js/feed.js";
 import { PIECES } from "../interface/js/tetris.js";
 import { rng } from "../interface/js/rng.js";
 
@@ -54,14 +54,28 @@ test("any message at all, after waiting long", () => {
 });
 
 test("the recorder's message texts: talkgroup and radio", () => {
-  assert.deepEqual(about("Grant TG 716 860.98750 MHz src 1100422 ENC"), { tg: 716, unit: 1100422 });
-  assert.deepEqual(about("Affiliation 1105402 → TG 11035"), { tg: 11035, unit: 1105402 });
-  assert.deepEqual(about("affiliation src 39980 tg 34928"), { tg: 34928, unit: 39980 });
-  assert.deepEqual(about("Registration 1105402"), { tg: null, unit: 1105402 });
-  assert.deepEqual(about("Deregistration 1104298"), { tg: null, unit: 1104298 });
-  assert.deepEqual(about("deaffiliation src 46310"), { tg: null, unit: 46310 });
-  assert.deepEqual(about("grant tg 32816 496.58750 MHz src 65520 digital"), { tg: 32816, unit: 65520 });
+  assert.deepEqual(about({ text: "Grant TG 716 860.98750 MHz src 1100422 ENC" }), { tg: 716, unit: 1100422 });
+  assert.deepEqual(about({ text: "Affiliation 1105402 → TG 11035" }), { tg: 11035, unit: 1105402 });
+  assert.deepEqual(about({ text: "affiliation src 39980 tg 34928" }), { tg: 34928, unit: 39980 });
+  assert.deepEqual(about({ text: "Registration 1105402" }), { tg: null, unit: 1105402 });
+  assert.deepEqual(about({ text: "Deregistration 1104298" }), { tg: null, unit: 1104298 });
+  assert.deepEqual(about({ text: "deaffiliation src 46310" }), { tg: null, unit: 46310 });
+  assert.deepEqual(about({ text: "grant tg 32816 496.58750 MHz src 65520 digital" }), { tg: 32816, unit: 65520 });
   assert.equal(groupOf("I"), "grant");
+});
+
+test("a unit event is a control message with its radio and talkgroup as they are", () => {
+  const e = { system: 0, system_id: 3, short_name: "dcfd", site: "north", kind: "affiliation", unit: 1105402, tag: "E1", talkgroup: 11035, alpha_tag: "Fire Dispatch", emergency: false, time: 1.75e9 };
+  const line = fromUnit(e);
+  assert.equal(line.system, "dcfd");
+  assert.deepEqual(about(line), { tg: 11035, unit: 1105402 });
+  assert.deepEqual([line.unitName, line.tgName], ["E1", "Fire Dispatch"]);
+  assert.ok(GROUPS.affil.includes(pieceOf(line)), "the same pieces as its log line's");
+  const reg = fromUnit({ ...e, kind: "registration", talkgroup: null, tag: undefined, alpha_tag: undefined });
+  assert.deepEqual([about(reg), reg.unitName], [{ tg: null, unit: 1105402 }, ""]);
+  assert.ok(GROUPS.reg.includes(pieceOf(reg)));
+  for (const kind of ["affiliation", "registration", "deregistration"]) assert.ok(UNIT_KINDS.has(kind), kind);
+  assert.ok(!UNIT_KINDS.has("grant"), "grants come in the log");
 });
 
 test("a message's own piece, with no bag", () => {

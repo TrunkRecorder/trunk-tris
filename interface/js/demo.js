@@ -4,6 +4,8 @@
 // lines are, and calls coming and going. It has the parts of TrunkClient
 // this interface uses.
 
+import { UNIT_KINDS } from "./feed.js";
+
 const SYSTEMS = [
   {
     shortName: "county",
@@ -90,7 +92,11 @@ export class DemoClient {
         // Poisson arrivals, a few at most a tick.
         let n = 0;
         for (let p = (perMin / 60) * dt; Math.random() < p && n < 5; p -= 1) n++;
-        for (let i = 0; i < n; i++) lines.push({ timeS: now / 1000, kind, text: this.text(s, kind), system: s.shortName });
+        for (let i = 0; i < n; i++) {
+          // What radios do comes on the topic `unit`, as from a recorder; the rest as log lines.
+          if (UNIT_KINDS.has(kind)) this.emit("unitEvent", { type: "unitEvent", event: this.unitEvent(s, kind) });
+          else lines.push({ timeS: now / 1000, kind, text: this.text(s, kind), system: s.shortName });
+        }
       }
     }
     if (lines.length) this.emit("log", { type: "log", lines });
@@ -102,6 +108,13 @@ export class DemoClient {
       this.calls.push({ id: this.nextCall++, systemName: s.shortName, talkgroup: tg, until: now + (2000 + Math.random() * 8000) / this.speed });
     }
     this.emit("change", this);
+  }
+
+  /** A made-up radio's `kind` (a registration, an affiliation…) on system `s`, as the topic `unit` sends it. */
+  unitEvent(s, kind) {
+    const unit = Number(pick(Object.keys(s.units).length ? Object.keys(s.units) : [String(39000 + Math.floor(Math.random() * 999))]));
+    const tg = kind === "affiliation" ? Number(pick(Object.keys(s.tgs))) : null;
+    return { system: 0, system_id: 0, short_name: s.shortName, kind, unit, tag: s.units[unit] ?? "", talkgroup: tg, alpha_tag: tg != null ? s.tgs[tg] : "", emergency: false, time: Date.now() / 1000 };
   }
 
   text(s, kind) {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0]
+
+- Affiliations and registrations come from the recorder's `unit` topic: the radio, the talkgroup
+  and their names as the recorder knows them, rather than read out of the log's text. Grants still
+  come from the log. With a recorder that doesn't send the topic yet, all of them come from the
+  log as before.
+
 ## [0.3.0]
 
 - Pieces as the radio sends them (Settings → Pieces): no bag of seven and nothing evened out.

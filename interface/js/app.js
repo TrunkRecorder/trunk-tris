@@ -10,7 +10,7 @@
 // behind it. ?speed=4 runs the games four times as fast.
 
 import { Game } from "./game.js";
-import { GROUP_NAMES, KINDS, about } from "./feed.js";
+import { GROUP_NAMES, KINDS, UNIT_KINDS, about, fromUnit } from "./feed.js";
 import { draw, SCREEN_W, SCREEN_H } from "./screen.js";
 import { GameBoyScreen, LCD_W, LCD_H } from "./gameboy.js";
 import { H, GB_H } from "./tetris.js";
@@ -120,18 +120,29 @@ function event(short, e) {
 
 // ── Control channel messages → games ────────────────────────────────────────
 
+/** A control message to its system's game. */
+function offer(line) {
+  if (line.system && systems.some((s) => s.short === line.system)) games.get(line.system).game.offer(line);
+}
+
+// What radios do comes on the topic `unit`; grants and the rest, in the log.
+// A recorder before the topic sends them only as log lines: until a unit
+// event comes, those are taken from the log too.
+let unitTopic = false;
+rec.on("unitEvent", (m) => {
+  unitTopic = true;
+  if (!paused() && m.event) offer(fromUnit(m.event));
+});
 rec.on("log", (m) => {
   if (paused()) return;
-  for (const line of m.lines ?? []) {
-    if (line.system && systems.some((s) => s.short === line.system)) games.get(line.system).game.offer(line);
-  }
+  for (const line of m.lines ?? []) if (!(unitTopic && UNIT_KINDS.has(line.kind))) offer(line);
 });
 
 /** What the bottom line says of the message that made the latest piece. */
 function label(short, feed) {
-  const { tg, unit } = about(feed.line.text ?? "");
-  const tgName = tg != null ? rec.talkgroups?.(short)?.get(tg)?.alphaTag || `TG ${tg}` : "";
-  const unitName = unit != null ? rec.unitName?.(short, unit) || `RADIO ${unit}` : "";
+  const { tg, unit } = about(feed.line);
+  const tgName = tg != null ? feed.line.tgName || rec.talkgroups?.(short)?.get(tg)?.alphaTag || `TG ${tg}` : "";
+  const unitName = unit != null ? feed.line.unitName || rec.unitName?.(short, unit) || `RADIO ${unit}` : "";
   const kind = feed.line.kind;
   if (!KINDS[kind]) return `${kind.replace(/_/g, " ")} ${tgName || unitName}`;
   if (kind === "affiliation") return `AFFIL ${unitName}${tgName ? ` > ${tgName}` : ""}`;
@@ -513,7 +524,7 @@ rec.on("change", () => {
   drawState();
 });
 // The messages the games are made of: the recorder sends them only to those who ask.
-rec.subscribe?.(["log"]);
+rec.subscribe?.(["log", "unit"]);
 
 drawState();
 if (demo) $("demo-note").hidden = false;

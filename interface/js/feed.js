@@ -77,12 +77,29 @@ export class Bag {
 }
 
 /**
- * What a control message is about, from its text: { tg, unit }. The texts
+ * What a radio did on the control channel, as the recorder's topic `unit`
+ * sends it (a `unitEvent`'s `event`), as a control message for the games:
+ * the same `kind` as its log line, with the radio, the talkgroup and their
+ * names as they are rather than in a text.
+ */
+export function fromUnit(e) {
+  const tg = e.talkgroup ?? null;
+  return { kind: e.kind, system: e.short_name, unit: e.unit, tg, unitName: e.tag ?? "", tgName: e.alpha_tag ?? "", text: `${e.kind} ${e.unit}${tg != null ? ` ${tg}` : ""} ${e.time}` };
+}
+
+/** The log line kinds the topic `unit` also sends: once it does, they're taken from there. */
+export const UNIT_KINDS = new Set(["registration", "deregistration", "affiliation", "acknowledge", "location", "data_grant", "answer_request", "call_alert", "emergency_alarm"]);
+
+/**
+ * What a control message is about: { tg, unit }, as a unit event has them,
+ * or from a log line's text. The texts
  * are the recorder's log lines, e.g. "Grant TG 716 860.98750 MHz src
  * 1100422", "Affiliation 1105402 → TG 11035", "affiliation src 39980 tg
  * 34928", "Registration 1105402", "deaffiliation src 46310".
  */
-export function about(text) {
+export function about(line) {
+  if (line.unit != null) return { tg: line.tg ?? null, unit: line.unit };
+  const text = line.text ?? "";
   const tg = /\btg\s+(\d+)/i.exec(text)?.[1];
   const unit = /\b(?:src|unit)\s+(\d+)/i.exec(text)?.[1] ?? /^\s*(?:de)?(?:registration|affiliation)\s+(\d+)/i.exec(text)?.[1];
   return { tg: tg ? Number(tg) : null, unit: unit ? Number(unit) : null };

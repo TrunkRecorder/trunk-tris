@@ -160,11 +160,16 @@ node tools/shoot.mjs "http://localhost:8099/?demo&speed=8" shot.png   # a screen
 |---|---|
 | `tetris.js` | the rules: the well, NES Tetris's pieces and rotations, lines, scoring |
 | `ai.js` | the computer player: Dellacherie's features, El-Tetris's weights, a temperature |
-| `feed.js` | control messages → pieces: the kinds, the bag of seven, the texts |
+| `feed.js` | control messages → pieces: the kinds, the bag of seven, the texts, unit events |
 | `game.js` | one system's game, on its own clock: moves, gravity, boxes, game over, the table |
 | `screen.js` | drawing a game as an NES screen |
 | `gameboy.js` | drawing a game as Game Boy Tetris, and the Game Boy's LCD |
 | `app.js` | the page: systems, layout and paging, sound, live audio, settings, full screen |
+
+The page subscribes to two of the recorder's topics. Grants and the rest of the control channel
+come as `log` lines; what radios do (affiliations, registrations) comes as `unitEvent`s on topic
+`unit`, with the radio and the talkgroup and their names. A recorder of 0.4.1 or older has no `unit`
+topic and sends those as log lines too, so until a unit event comes, they're taken from the log.
 
 Releases: set the version in `interface/interface.json`, add it to `CHANGELOG.md`, and push a tag
 `v<version>`. The release workflow packages `interface/` and publishes it.
